@@ -1,13 +1,23 @@
 const EventEmitter = require('events');
 
+// class MyEmitter extends EventEmitter {
+//   constructor() {
+//     super();
+//     this.emit('event')
+//   }
+// }
+
 class MyEmitter extends EventEmitter {
   constructor() {
     super();
-    this.emit('event')
+    this.on('event', () => {
+      console.log('an event occurred!');
+    });
+    this.emit('event');
   }
 }
 
 const myEmitter = new MyEmitter();
-myEmitter.on('event', () => {
-  console.log('an event occurred!');
-});
+// myEmitter.on('event', () => {
+//   console.log('an event occurred!');
+// });

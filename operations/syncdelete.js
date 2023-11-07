@@ -1,7 +1,7 @@
 const fs = require("fs");
-fs.readFile("./operations/data.txt", (err, data) => {
+fs.readFile("./data/test.txt", (err, data) => {
   if (err) console.log(err.message);
   else console.log(data);
 });
-fs.unlinkSync("./operations/data.txt");		// delete the file
+fs.unlinkSync("./data/test.txt");		// delete the file
 

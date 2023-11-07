@@ -45,6 +45,8 @@ The NodeJS standard library has several operations that are called blocking oper
 
 1. Explore the code in "operations/blocking.js" and "operations/nonblocking.js". For which code will the function moreWork() get executed. Why?
 
+- The file blocking.js contains a try/except block of code that blocks until the file is done reading at which point it can proceed. The other file however does not and can continue to execute moreWork().
+
 One must be careful when writing concurrent scripts in Node.js. If actions performed in later stages are related to actions related in previous stages or vice-versa then the program will be in an error state. 
 For example, consider the code in "operations/syncdelete.js".
 
@@ -52,6 +54,7 @@ For example, consider the code in "operations/syncdelete.js".
 
 1. Identify and fix the runtime error in "operations/syncdelete.js".
 
+- Primary issue is in the path which was pointing at the wrong direction. File not deletes, however if you try to run the program twice it fails because the file was already deleted.
 # Event Loop
 
 When *setTimeout(callback, ms)* invoked, Node puts a *callback* in the timer phase's queue. The Node runtime executes it after a threshold time as specified in the *ms* argument.
@@ -59,34 +62,48 @@ When *setTimeout(callback, ms)* invoked, Node puts a *callback* in the timer pha
 **For you to do**:
 
 1. In "eventloop/timer.js", what will be the order of execution?
+- The timer will delay the call, therefore the order is foo,baz,foo,baz, such that we have bar after that.
 
 2. How many callbacks will the timers phase queue have after the script is run? 
+- After it is run there should be none left.
 
 All I/O operations (e.g., read a file) run in the poll phase. The poll phase performs an I/O operation and puts all callbacks associated with the I/O operation in its queue. When the I/O operation completes, it executes the callbacks in the queue. 
 
 **For you to do**:
 1. In "eventloop/poll.js", which phase of the event loop will contain callback functions? What will they be?
+- Starting on line 5 of the file, which includes callback function passed to fs.readfile
 2. What will be the execution order?
+- foo > done > read error
 
 The poll phase is actually a blocking phase. If the callback queue associated with it is empty, it blocks the event loop till the earliest scheduled callback in the timers queue.
 
 **For you to do**:
 1. Run the script "eventloop/poll_timer.js". Explain the order of execution in terms of the messages you see in the console.
+- someAsyncOperation runs first followed by the timer statement. The first takes 10ms whereas the other takes 100.
+
 2. Change "Date.now() - startCallback < 10" in line 21 to "Date.now() - startCallback < 150". Will the order of execution change?
+- Oddly the time is now 153ms which is not what I expected. I still see the same order.
+
 3. Set timeout to 0. Will the order of execution change?
+- The order did in fact change now, and is showing the reverse.
 
 **For you to do**:
 1. Run the script in "eventloop/immediate.js". What order of execution do you see in terms of the messages being logged.
-2. Change the script such that the immediate callback runs first.
+- The order is the data, the schedule statement, and then the timer statement
+2Change the script such that the immediate callback runs first.
+- Done
 
 The *process.nextTick()* API allows us to schedule tasks before the event loop.
 
 **For you to do**:
 1. Run the script "eventloop/tick_immediate.js". Explain the order of execution in terms of the messages logged.
+- First variable is declared and then main is logged. Call backs are scheduled. NextTick is then checked, and variable incremented. Finally, the last item is run. We see main=0, nextTick=1, and Run Immediately=1.
 2. Run the script "eventloop/tick_immediate.js". Why doesn't setTimeout get executed? 
+- Because it is not included here.
 3. How does the output change if we replace process.nexTick(cb) with setImmediate(cb)?
+- This would change the order of the messages being logged.
 4. Why does the script "eventloop/eventemit.js" not log the event message? Change it such that the event message gets logged.
-
+- It works now using this.on() in Emitter class
 
 ## Asynchronous Programming
 
@@ -96,15 +113,21 @@ The script logs 0.
 **For you to do**:
 
 1. Change the script such that logs the sum of the elements in the list concatenated list.
+- Modified such that k now concats correctly
 2. Does the code look unweildy to you?
+- It can be when you have too many callbacks
 
 ### Promise
 
 **For you to do**:
 
 1. Run the script in "asynchronous/promise.js". Explain the order of execution based on the logged messages.
+- The order is do more stuff > in main > processing ... > Kim
+
 2. Change the value of i to 12. How does it change the promise's execution?
-3. Run the script in "asynchronous/promise1.js". Explain the order of execution based on the logged messages.
+- The order will now be: found bad index > in main > processing ... > Bad index rejected
+
+4. Run the script in "asynchronous/promise1.js". Explain the order of execution based on the logged messages.
 4. Do promises run before or after process.nextTick()?
 5. Run the script in "asynchronous/promise2.js". Explain the order of execution based on the logged messages.
 6. Discuss the implications of running a computationally expensive task in a promise.
